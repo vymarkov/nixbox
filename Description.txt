@@ -1,0 +1,1 @@
+A Nixos based vagrant box built from https://github.com/hennersz/nixbox

@@ -1,0 +1,92 @@
+name: Packer Build
+
+on:
+  push:
+    branches: master
+  schedule:
+    - cron:  "0 0 * * 1"
+
+jobs:
+  set-build-version:
+    runs-on: ubuntu-latest
+    outputs:
+      build_version: ${{ steps.set-version.outputs.build_version }}
+    steps:
+      - id: set-version
+        run: |
+          echo "build_version=$(date +%y%m%d%H%M%S)" >> "$GITHUB_OUTPUT" 
+  build-libvirt:
+    strategy:
+      matrix:
+        flakes: 
+          - 'true'
+          - 'false'
+        builder:
+          - qemu.qemu
+    runs-on: ubuntu-latest
+    needs: set-build-version
+    steps:
+      - uses: actions/checkout@v3
+      - name: install dependencies
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.asc
+          echo "deb [ signed-by=/usr/share/keyrings/hashicorp-archive-keyring.asc ] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update
+          sudo apt install -y qemu-kvm vagrant packer 
+      - name: build
+        run: |
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
+      - name: test
+        env:
+          BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
+        run: |
+          sudo sed -i "s/# deb-src/deb-src/" /etc/apt/sources.list
+          sudo apt update
+          sudo apt-get purge vagrant-libvirt
+          sudo apt-mark hold vagrant-libvirt
+          sudo apt-get install -y qemu libvirt-daemon-system libvirt-dev ebtables libguestfs-tools libxslt-dev libxml2-dev zlib1g-dev ruby-dev
+          sudo apt-get install -y vagrant ruby-fog-libvirt
+          sudo apt-get build-dep -y vagrant ruby-libvirt
+          sudo vagrant plugin install vagrant-libvirt
+          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
+          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
+          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
+      - name: publish
+        env:
+          BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
+        run: |
+          vagrant cloud auth login --token ${{ secrets.VAGRANT_CLOUD_TOKEN }} &&
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push
+  build-virtualbox:
+    strategy:
+      matrix:
+        flakes: 
+          - 'true'
+          - 'false'
+        builder:
+          - virtualbox-iso.virtualbox
+    runs-on: macos-12
+    needs: set-build-version
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: latest
+      - name: build
+        run: |
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
+      - name: test
+        env:
+          BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
+        run: |
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
+      - name: publish
+        env:
+          BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
+        run: |
+          vagrant cloud auth login --token ${{ secrets.VAGRANT_CLOUD_TOKEN }} &&
+          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push

@@ -7,5 +7,6 @@ stdenv.mkDerivation {
     packer
     ruby
     vagrant
+    act
   ];
 }

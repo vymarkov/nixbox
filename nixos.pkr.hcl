@@ -23,6 +23,11 @@ variable "iso_checksum" {
   type = string
 }
 
+variable "use_flakes" {
+  type = string
+  default = "true"
+}
+
 variable "disk_size" {
   type    = string
   default = "10240"
@@ -93,7 +98,7 @@ source "virtualbox-iso" "virtualbox" {
     "curl http://{{ .HTTPIP }}:{{ .HTTPPort }}/install_ed25519.pub > .ssh/authorized_keys<enter>",
     "sudo systemctl start sshd<enter>"
   ]
-  boot_wait            = "45s"
+  boot_wait            = var.boot_wait
   disk_size            = var.disk_size
   format               = "ova"
   guest_additions_mode = "disable"
@@ -140,6 +145,9 @@ build {
   provisioner "shell" {
     execute_command = "sudo su -c '{{ .Vars }} {{ .Path }}'"
     script          = "./scripts/install.sh"
+    env = {
+      USE_FLAKES = var.use_flakes
+    } 
   }
 
   post-processor "vagrant" {
