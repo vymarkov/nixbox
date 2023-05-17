@@ -30,12 +30,12 @@ variable "use_flakes" {
 
 variable "disk_size" {
   type    = string
-  default = "10240"
+  default = "25600"
 }
 
 variable "memory" {
   type    = string
-  default = "1024"
+  default = "4096"
 }
 
 variable "boot_wait" {
