@@ -11,11 +11,11 @@ USE_FLAKES ?= true
 BOOT_WAIT ?= 120s
 
 ifeq (${USE_FLAKES}, true)
-	FQ_NAME = ${REPO}-${NIXOS_VERSION}-flakes
-	LOCAL_NAME = nixbox-${NIXOS_VERSION}-flakes
+  FQ_NAME = ${REPO}-${NIXOS_VERSION}-flakes
+  LOCAL_NAME = nixbox-${NIXOS_VERSION}-flakes
 else
   FQ_NAME = ${REPO}-${NIXOS_VERSION}
-	LOCAL_NAME = nixbox-${NIXOS_VERSION}
+  LOCAL_NAME = nixbox-${NIXOS_VERSION}
 endif
 
 all: help

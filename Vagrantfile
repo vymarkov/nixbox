@@ -18,6 +18,8 @@ Vagrant.configure("2") do |config|
 
   config.ssh.insert_key = false
   config.ssh.connect_timeout = 60
+  config.ssh.extra_args = ["-o", "PreferredAuthentications=publickey"]
+  # config.ssh.password = "vagrant"
 
   config.nfs.verify_installed = false
   config.vm.synced_folder '.', '/vagrant', disabled: true
