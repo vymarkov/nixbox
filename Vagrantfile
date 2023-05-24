@@ -17,6 +17,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.ssh.insert_key = false
+  config.ssh.connect_timeout = 60
 
   config.nfs.verify_installed = false
   config.vm.synced_folder '.', '/vagrant', disabled: true
