@@ -23,6 +23,9 @@ jobs:
           - 'false'
         builder:
           - qemu.qemu
+        version:
+          - '22.11'
+          - '23.05'
     runs-on: ubuntu-latest
     needs: set-build-version
     steps:
@@ -35,7 +38,7 @@ jobs:
           sudo apt install -y qemu-kvm vagrant packer 
       - name: build
         run: |
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
       - name: test
         env:
           BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
@@ -48,15 +51,15 @@ jobs:
           sudo apt-get install -y vagrant ruby-fog-libvirt
           sudo apt-get build-dep -y vagrant ruby-libvirt
           sudo vagrant plugin install vagrant-libvirt
-          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
-          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
-          sudo make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
+          sudo make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
+          sudo make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
+          sudo make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
       - name: publish
         env:
           BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
         run: |
           vagrant cloud auth login --token ${{ secrets.VAGRANT_CLOUD_TOKEN }} &&
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push
   build-virtualbox:
     strategy:
       matrix:
@@ -65,6 +68,9 @@ jobs:
           - 'false'
         builder:
           - virtualbox-iso.virtualbox
+        version:
+          - '22.11'
+          - '23.05'
     runs-on: macos-12
     needs: set-build-version
     steps:
@@ -76,17 +82,17 @@ jobs:
           version: latest
       - name: build
         run: |
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
       - name: test
         env:
           BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
         run: |
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-add
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-up
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} vagrant-test
       - name: publish
         env:
           BUILD_VERSION: ${{needs.set-build-version.outputs.build_version}}
         run: |
           vagrant cloud auth login --token ${{ secrets.VAGRANT_CLOUD_TOKEN }} &&
-          make BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push
+          make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BUILD_VERSION=$BUILD_VERSION vagrant-push
