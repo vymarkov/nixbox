@@ -37,6 +37,8 @@ jobs:
           sudo apt update
           sudo apt install -y qemu-kvm vagrant=2.3.4 packer 
       - name: build
+        env:
+          PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
       - name: test
@@ -81,6 +83,8 @@ jobs:
         with:
           version: latest
       - name: build
+        env:
+          PACKER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           make NIXOS_VERSION=${{ matrix.version }} BUILDER=${{ matrix.builder }} USE_FLAKES=${{ matrix.flakes }} BOOT_WAIT=300s build
       - name: test

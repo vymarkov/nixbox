@@ -2,6 +2,15 @@ locals {
   iso_url = "https://channels.nixos.org/nixos-${var.version}/latest-nixos-minimal-${var.arch}-linux.iso"
 }
 
+packer {
+  required_plugins {
+    hyperv = {
+      version = ">= 1.1.0"
+      source  = "github.com/hashicorp/hyperv"
+    }
+  }
+}
+
 variable "builder" {
   description = "builder"
   type = string

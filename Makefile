@@ -26,7 +26,10 @@ help: ## This help
 version:
 	@echo "Build for ${ARCH} architecture and using the ${NIXOS_VERSION} NixOS iso version"
 
-build: version nixos.pkr.hcl ## [BUILDER] [ARCH] [VERSION] Build packer image
+packer-init:
+	packer init nixos.pkr.hcl
+
+build: version nixos.pkr.hcl packer-init ## [BUILDER] [ARCH] [VERSION] Build packer image
 	@packer build \
 	-var arch=${ARCH} \
 	-var builder="${BUILDER}" \
