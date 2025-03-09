@@ -24,7 +24,7 @@ jobs:
         builder:
           - qemu.qemu
         version:
-          - '23.05'
+          - '24.05'
     runs-on: ubuntu-latest
     needs: set-build-version
     steps:
